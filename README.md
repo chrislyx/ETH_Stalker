@@ -16,6 +16,10 @@ The app allows the current user to search a wallet address and follow/unfollow i
 
 The app displays the current user followings and followers list.
 
+#### 3. Viewing transaction history of followers
+
+The app compiles all recorded on-chain transactions including tokens and NFT purchases in the past 30 days, sorted by timestamp. This platform is useful for users who want to follow whales/investors' activities in the space.
+
 ## Getting Started
 
 Install the dependencies:
