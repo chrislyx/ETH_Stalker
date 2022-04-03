@@ -1,3 +1,6 @@
+import { getTransfersWithList } from "@/utils/transferslist";
+import { getTransfers } from "@/utils/transfers";
+
 import type { NextPage } from "next";
 import styles from "./index.module.css";
 import { WalletConnectButton } from "@/components";
@@ -13,6 +16,8 @@ import { followListInfoQuery, searchUserInfoQuery } from "@/utils/query";
 import { FollowListInfoResp, SearchUserInfoResp, Network } from "@/utils/types";
 import { formatAddress, removeDuplicate, isValidAddr } from "@/utils/helper";
 import { useWeb3 } from "@/context/web3Context";
+import { StaticDatePicker } from "@mui/lab";
+import { userInfo } from "os";
 
 const NAME_SPACE = "CyberConnect";
 const NETWORK = Network.ETH;
@@ -59,16 +64,16 @@ const Home: NextPage = () => {
         setSearchAddrInfo((prev) => {
           return !!prev
             ? {
-                ...prev,
-                connections: [
-                  {
-                    followStatus: {
-                      ...prev.connections[0].followStatus,
-                      isFollowing: true,
-                    },
+              ...prev,
+              connections: [
+                {
+                  followStatus: {
+                    ...prev.connections[0].followStatus,
+                    isFollowing: true,
                   },
-                ],
-              }
+                },
+              ],
+            }
             : prev;
         });
 
@@ -76,15 +81,15 @@ const Home: NextPage = () => {
         setFollowListInfo((prev) => {
           return !!prev
             ? {
-                ...prev,
-                followingCount: prev.followingCount + 1,
-                followings: {
-                  ...prev.followings,
-                  list: removeDuplicate(
-                    prev.followings.list.concat([searchAddrInfo.identity])
-                  ),
-                },
-              }
+              ...prev,
+              followingCount: prev.followingCount + 1,
+              followings: {
+                ...prev.followings,
+                list: removeDuplicate(
+                  prev.followings.list.concat([searchAddrInfo.identity])
+                ),
+              },
+            }
             : prev;
         });
 
@@ -95,31 +100,31 @@ const Home: NextPage = () => {
         setSearchAddrInfo((prev) => {
           return !!prev
             ? {
-                ...prev,
-                connections: [
-                  {
-                    followStatus: {
-                      ...prev.connections[0].followStatus,
-                      isFollowing: false,
-                    },
+              ...prev,
+              connections: [
+                {
+                  followStatus: {
+                    ...prev.connections[0].followStatus,
+                    isFollowing: false,
                   },
-                ],
-              }
+                },
+              ],
+            }
             : prev;
         });
 
         setFollowListInfo((prev) => {
           return !!prev
             ? {
-                ...prev,
-                followingCount: prev.followingCount - 1,
-                followings: {
-                  ...prev.followings,
-                  list: prev.followings.list.filter((user) => {
-                    return user.address !== searchAddrInfo.identity.address;
-                  }),
-                },
-              }
+              ...prev,
+              followingCount: prev.followingCount - 1,
+              followings: {
+                ...prev.followings,
+                list: prev.followings.list.filter((user) => {
+                  return user.address !== searchAddrInfo.identity.address;
+                }),
+              },
+            }
             : prev;
         });
 
@@ -170,41 +175,41 @@ const Home: NextPage = () => {
     const params =
       type === "followers"
         ? {
-            address,
-            namespace: NAME_SPACE,
-            network: NETWORK,
-            followerFirst: FIRST,
-            followerAfter: followListInfo.followers.pageInfo.endCursor,
-          }
+          address,
+          namespace: NAME_SPACE,
+          network: NETWORK,
+          followerFirst: FIRST,
+          followerAfter: followListInfo.followers.pageInfo.endCursor,
+        }
         : {
-            address,
-            namespace: NAME_SPACE,
-            network: NETWORK,
-            followingFirst: FIRST,
-            followingAfter: followListInfo.followings.pageInfo.endCursor,
-          };
+          address,
+          namespace: NAME_SPACE,
+          network: NETWORK,
+          followingFirst: FIRST,
+          followingAfter: followListInfo.followings.pageInfo.endCursor,
+        };
 
     const resp = await followListInfoQuery(params);
     if (resp) {
       type === "followers"
         ? setFollowListInfo({
-            ...followListInfo,
-            followers: {
-              pageInfo: resp.followers.pageInfo,
-              list: removeDuplicate(
-                followListInfo.followers.list.concat(resp.followers.list)
-              ),
-            },
-          })
+          ...followListInfo,
+          followers: {
+            pageInfo: resp.followers.pageInfo,
+            list: removeDuplicate(
+              followListInfo.followers.list.concat(resp.followers.list)
+            ),
+          },
+        })
         : setFollowListInfo({
-            ...followListInfo,
-            followings: {
-              pageInfo: resp.followings.pageInfo,
-              list: removeDuplicate(
-                followListInfo.followings.list.concat(resp.followings.list)
-              ),
-            },
-          });
+          ...followListInfo,
+          followings: {
+            pageInfo: resp.followings.pageInfo,
+            list: removeDuplicate(
+              followListInfo.followings.list.concat(resp.followings.list)
+            ),
+          },
+        });
     }
   };
 
@@ -213,135 +218,145 @@ const Home: NextPage = () => {
   }, [address]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.logo}>
-        <img
-          src="/cyberconnect-logo.png"
-          alt="CyberConnect Logo"
-          width="100%"
-          height="100%"
-        />
-      </div>
-      <div className={styles.discription}>
-        <p>
-          This is a{" "}
-          <a
-            className={styles.link}
-            href="https://docs.cyberconnect.me/"
-            target="_blank"
-          >
-            CyberConnect
-          </a>{" "}
-          starter app. You can freely use it as a base for your application.{" "}
-        </p>
-        <p>
-          This app displays the current user&apos;s followings and followers. It
-          also allows the user to follow/unfollow a wallet address.
-        </p>
-        <p>Try it yourself!</p>
-      </div>
-      <WalletConnectButton />
-      {address && (
-        <div className={styles.searchSection}>
-          <div className={styles.inputContainer}>
-            <TextField
-              onChange={(e) => handleInputChange(e.target.value)}
-              className={styles.textField}
-              placeholder="Please input the Address you want to follow."
-            />
-            <LoadingButton
-              onClick={handleFollow}
-              disabled={
-                searchLoading ||
-                !isValidAddr(searchInput) ||
-                !address ||
-                address === searchInput
-              }
-              loading={followLoading}
-              className={styles.loadingButton}
-            >
-              {!searchAddrInfo?.connections[0].followStatus.isFollowing
-                ? "Follow"
-                : "Unfollow"}
-            </LoadingButton>
-          </div>
-          {!isValidAddr(searchInput) ? (
-            <div className={styles.error}>Please enter a valid address.</div>
-          ) : address === searchInput ? (
-            <div className={styles.error}>You can’t follow yourself : )</div>
-          ) : (
-            <div className={styles.isFollowed}>
-              This user{" "}
-              {searchAddrInfo?.connections[0].followStatus.isFollowed
-                ? "is following you"
-                : "has not followed you yet"}
-            </div>
-          )}
+
+
+
+
+    <div >
+
+
+
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <WalletConnectButton />
         </div>
-      )}
-      {followListInfo && (
-        <div className={styles.listsContainer}>
-          <div className={styles.list}>
-            <div className={styles.subtitle}>
-              You have <strong>{followListInfo.followerCount}</strong>{" "}
-              followers:
-            </div>
-            <div className={styles.followList}>
-              {followListInfo.followers.list.map((user) => {
-                return (
-                  <div key={user.address} className={styles.user}>
-                    <Avatar src={user.avatar} className={styles.avatar} />
-                    <div className={styles.userAddress}>
-                      {user.domain || formatAddress(user.address)}
-                    </div>
-                  </div>
-                );
-              })}
-              {followListInfo.followers.pageInfo.hasNextPage && (
-                <LoadingButton onClick={() => fetchMore("followers")}>
-                  See More
-                </LoadingButton>
-              )}
-            </div>
-          </div>
-          <div className={styles.list}>
-            <div className={styles.subtitle}>
-              You have <strong>{followListInfo.followingCount}</strong>{" "}
-              followings:
-            </div>
-            <div className={styles.followList}>
-              {followListInfo.followings.list.map((user) => {
-                return (
-                  <div key={user.address} className={styles.user}>
-                    <Avatar src={user.avatar} className={styles.avatar} />
-                    <div className={styles.userAddress}>
-                      {user.domain || formatAddress(user.address)}
-                    </div>
-                  </div>
-                );
-              })}
-              {followListInfo.followings.pageInfo.hasNextPage && (
-                <LoadingButton onClick={() => fetchMore("followings")}>
-                  See More
-                </LoadingButton>
-              )}
-            </div>
-          </div>
+
+
+        <div className={styles.logo}>
+          <img
+            src="/ethStalker.png"
+            alt="ETHstalker Logo"
+            width="100%"
+            height="100%"
+          />
         </div>
-      )}
-      <Snackbar
-        open={snackbarOpen}
-        autoHideDuration={6000}
-        onClose={() => setSnackbarOpen(false)}
-      >
-        <MuiAlert
+        <div className={styles.discription}>
+
+
+          <h2 >Stalk your friends (crypto wallet)</h2>
+
+
+        </div>
+        <h1 className={styles.title}>ETHstalker</h1>
+
+
+
+        <div className={styles.space}>
+
+        </div>
+
+
+
+        {followListInfo && (
+
+          <div className={styles.listsContainer}>
+            <h1>Who are you stalking?</h1>
+
+            <div className={styles.smallspace}></div>
+
+
+            {address && (
+              <div className={styles.searchSection}>
+                <div className={styles.inputContainer}>
+                  <TextField
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    className={styles.textField}
+                    placeholder="Please input the Address you want to stalk."
+                  />
+                  <LoadingButton
+                    onClick={handleFollow}
+                    disabled={
+                      searchLoading ||
+                      !isValidAddr(searchInput) ||
+                      !address ||
+                      address === searchInput
+                    }
+                    loading={followLoading}
+                    className={styles.loadingButton}
+                  >
+                    {!searchAddrInfo?.connections[0].followStatus.isFollowing
+                      ? "Stalk"
+                      : "Stop Stalking"}
+                  </LoadingButton>
+                </div>
+                {!isValidAddr(searchInput) ? (
+                  <div className={styles.error}>Please enter a valid address.</div>
+                ) : address === searchInput ? (
+                  <div className={styles.error}>You can’t follow yourself : )</div>
+                ) : (
+                  <div className={styles.isFollowed}>
+                    This user{" "}
+                    {searchAddrInfo?.connections[0].followStatus.isFollowed
+                      ? "is following you"
+                      : "has not followed you yet"}
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className={styles.space}></div>
+
+            <h1 className={styles.negativemargin}>Your List</h1>
+            <div className={styles.smallspace}></div>
+            <div className={styles.list}>
+              <div className={styles.subtitle}>
+                You are stalking <strong>{followListInfo.followingCount}</strong>{" "}
+                friends:
+              </div>
+              <div className={styles.followList}>
+                {followListInfo.followings.list.map((user) => {
+                  return (
+                    <div key={user.address} className={styles.user}>
+                      <Avatar src={user.avatar} className={styles.avatar} />
+                      <div className={styles.userAddress}>
+                        {user.domain || user.address}
+                      </div>
+                    </div>
+                  );
+                })}
+                {followListInfo.followings.pageInfo.hasNextPage && (
+                  <LoadingButton onClick={() => fetchMore("followings")}>
+                    See More
+                  </LoadingButton>
+                )}
+              </div>
+            </div>
+
+
+
+          </div>
+
+        )}
+
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
           onClose={() => setSnackbarOpen(false)}
-          severity="success"
-          sx={{ width: "100%" }}
         >
-          {snackbarText}
-        </MuiAlert>
-      </Snackbar>
+          <MuiAlert
+            onClose={() => setSnackbarOpen(false)}
+            severity="success"
+            sx={{ width: "100%" }}
+          >
+            {snackbarText}
+          </MuiAlert>
+        </Snackbar>
+
+
+      </div>
+
+
+
     </div>
   );
 };
